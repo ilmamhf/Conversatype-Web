@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <rect width="100" height="100" rx="24" fill="#58CC02"/>
+  <!-- Chat Bubble Background -->
+  <path d="M25 32C25 26.4772 29.4772 22 35 22H65C70.5228 22 75 26.4772 75 32V56C75 61.5228 70.5228 66 65 66H42L28 76V66H35C29.4772 66 25 61.5228 25 56V32Z" fill="#FFFFFF"/>
+  <!-- Monospace Cursor & Keyboard prompt dots -->
+  <rect x="36" y="38" width="6" height="12" rx="2" fill="#58CC02"/>
+  <rect x="46" y="44" width="18" height="4" rx="2" fill="#46A302"/>
+</svg>

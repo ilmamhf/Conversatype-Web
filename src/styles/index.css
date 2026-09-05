@@ -1,0 +1,169 @@
+@import "tailwindcss";
+
+:root,
+[data-theme="duolingo"] {
+  --bg-app: #F7F9FA;
+  --bg-surface: #FFFFFF;
+  --bg-surface-secondary: #F0F3F6;
+  --border-app: #E5E7EB;
+  --border-strong: #D1D5DB;
+  --text-primary: #1E293B;
+  --text-secondary: #64748B;
+  --text-muted: #94A3B8;
+
+  --color-brand: #58CC02;
+  --color-brand-hover: #46A302;
+  --color-brand-shadow: #3D8C02;
+  --color-brand-text: #FFFFFF;
+
+  --bubble-npc-bg: #FFFFFF;
+  --bubble-npc-border: #E2E8F0;
+  --bubble-npc-text: #1E293B;
+  --bubble-user-bg: #58CC02;
+  --bubble-user-text: #FFFFFF;
+
+  --char-correct: #16A34A;
+  --char-incorrect-bg: #FFE4E6;
+  --char-incorrect-text: #E11D48;
+  --char-pending: #94A3B8;
+  --caret-color: #58CC02;
+}
+
+[data-theme="tokopedia"] {
+  --bg-app: #F4F5F7;
+  --bg-surface: #FFFFFF;
+  --bg-surface-secondary: #F8F9FA;
+  --border-app: #E4E7EC;
+  --border-strong: #CBD5E1;
+  --text-primary: #212121;
+  --text-secondary: #6D7588;
+  --text-muted: #9FA6B2;
+
+  --color-brand: #03AC0E;
+  --color-brand-hover: #028A0B;
+  --color-brand-shadow: #026908;
+  --color-brand-text: #FFFFFF;
+
+  --bubble-npc-bg: #FFFFFF;
+  --bubble-npc-border: #E4E7EC;
+  --bubble-npc-text: #212121;
+  --bubble-user-bg: #03AC0E;
+  --bubble-user-text: #FFFFFF;
+
+  --char-correct: #03AC0E;
+  --char-incorrect-bg: #FFEBEE;
+  --char-incorrect-text: #D32F2F;
+  --char-pending: #9FA6B2;
+  --caret-color: #03AC0E;
+}
+
+[data-theme="monkeytype"] {
+  --bg-app: #323437;
+  --bg-surface: #2C2E31;
+  --bg-surface-secondary: #252729;
+  --border-app: #42464B;
+  --border-strong: #54585E;
+  --text-primary: #D1D0C5;
+  --text-secondary: #909499;
+  --text-muted: #646669;
+
+  --color-brand: #E2B714;
+  --color-brand-hover: #C9A20F;
+  --color-brand-shadow: #9B7C0A;
+  --color-brand-text: #1E2022;
+
+  --bubble-npc-bg: #2C2E31;
+  --bubble-npc-border: #42464B;
+  --bubble-npc-text: #D1D0C5;
+  --bubble-user-bg: #E2B714;
+  --bubble-user-text: #1E2022;
+
+  --char-correct: #E2B714;
+  --char-incorrect-bg: rgba(202, 71, 84, 0.25);
+  --char-incorrect-text: #CA4754;
+  --char-pending: #646669;
+  --caret-color: #E2B714;
+}
+
+[data-theme="nord"] {
+  --bg-app: #2E3440;
+  --bg-surface: #3B4252;
+  --bg-surface-secondary: #434C5E;
+  --border-app: #4C566A;
+  --border-strong: #5E697F;
+  --text-primary: #ECEFF4;
+  --text-secondary: #D8DEE9;
+  --text-muted: #7B88A1;
+
+  --color-brand: #88C0D0;
+  --color-brand-hover: #81A1C1;
+  --color-brand-shadow: #5E81AC;
+  --color-brand-text: #2E3440;
+
+  --bubble-npc-bg: #3B4252;
+  --bubble-npc-border: #4C566A;
+  --bubble-npc-text: #ECEFF4;
+  --bubble-user-bg: #88C0D0;
+  --bubble-user-text: #2E3440;
+
+  --char-correct: #A3BE8C;
+  --char-incorrect-bg: rgba(191, 97, 106, 0.25);
+  --char-incorrect-text: #BF616A;
+  --char-pending: #7B88A1;
+  --caret-color: #88C0D0;
+}
+
+body {
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  user-select: none;
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* Caret blinking and animations */
+@keyframes caretBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.animate-caret {
+  animation: caretBlink 0.9s ease-in-out infinite;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* 3D Tactile Buttons */
+.btn-tactile {
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+  box-shadow: 0 4px 0 0 var(--color-brand-shadow);
+}
+.btn-tactile:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 0 var(--color-brand-shadow);
+}
+
+.btn-tactile-secondary {
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+  box-shadow: 0 4px 0 0 var(--border-strong);
+}
+.btn-tactile-secondary:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 0 var(--border-strong);
+}
