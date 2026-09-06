@@ -323,7 +323,7 @@ export const ScenarioSelector: React.FC<ScenarioSelectorProps> = ({
             </div>
 
             {/* Scenario Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[50vh] overflow-y-auto pr-1">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[50vh] overflow-y-auto pr-1 pt-1.5 pb-2">
               {filteredScenarios.length === 0 ? (
                 <div
                   style={{ color: 'var(--text-muted)' }}
@@ -344,17 +344,15 @@ export const ScenarioSelector: React.FC<ScenarioSelectorProps> = ({
                         handleModalClose();
                       }}
                       style={{
-                        backgroundColor: isSelected
-                          ? 'var(--bg-surface-secondary)'
-                          : 'var(--bg-surface)',
+                        backgroundColor: 'var(--bg-surface)',
                         borderColor: isSelected ? 'var(--color-brand)' : 'var(--border-app)',
                         boxShadow: isSelected
-                          ? '0 4px 0 0 var(--color-brand-shadow)'
+                          ? '0 2px 0 0 var(--color-brand-shadow)'
                           : '0 2px 0 0 var(--border-app)',
                       }}
                       className={clsx(
                         'group p-3.5 rounded-2xl border-2 transition-all cursor-pointer flex flex-col justify-between text-left select-none relative hover:brightness-98',
-                        isSelected && 'translate-y-[-2px]'
+                        isSelected && 'ring-1 ring-brand-500/30'
                       )}
                     >
                       <div>

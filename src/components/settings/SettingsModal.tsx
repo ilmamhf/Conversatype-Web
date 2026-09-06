@@ -136,7 +136,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             <Volume2 className="w-4 h-4" style={{ color: 'var(--color-brand)' }} />
             Typing Sound Feedback
           </label>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-2.5">
             {soundOptions.map((opt) => {
               const isSelected = settings.soundPack === opt.id;
               return (
@@ -148,19 +148,24 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     borderColor: isSelected ? 'var(--color-brand)' : 'var(--border-app)',
                   }}
                   className={clsx(
-                    'p-2.5 rounded-2xl border-2 text-left transition-all',
-                    isSelected && 'ring-2 ring-brand-500/40'
+                    'p-3 rounded-2xl border-2 text-left transition-all relative flex flex-col justify-between cursor-pointer',
+                    isSelected && 'ring-2 ring-brand-500/40 shadow-xs'
                   )}
                 >
-                  <div
-                    style={{ color: 'var(--text-primary)' }}
-                    className="text-xs font-bold"
-                  >
-                    {opt.label}
+                  <div className="flex items-center justify-between mb-1">
+                    <div
+                      style={{ color: isSelected ? 'var(--color-brand)' : 'var(--text-primary)' }}
+                      className="text-xs font-black transition-colors"
+                    >
+                      {opt.label}
+                    </div>
+                    {isSelected && (
+                      <Check className="w-4 h-4 shrink-0" style={{ color: 'var(--color-brand)' }} />
+                    )}
                   </div>
                   <div
                     style={{ color: 'var(--text-secondary)' }}
-                    className="text-[10px]"
+                    className="text-[10px] leading-tight"
                   >
                     {opt.desc}
                   </div>

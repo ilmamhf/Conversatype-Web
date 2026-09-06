@@ -35,54 +35,75 @@ class SoundSynthesizer {
     const gain = this.ctx.createGain();
 
     if (this.soundPack === 'cherry') {
-      // Crisp mechanical click
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(1200 + Math.random() * 300, t);
-      osc.frequency.exponentialRampToValueAtTime(300, t + 0.04);
-      gain.gain.setValueAtTime(this.volume * 0.35, t);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
-
-      osc.connect(gain);
-      gain.connect(this.ctx.destination);
-      osc.start(t);
-      osc.stop(t + 0.045);
-    } else if (this.soundPack === 'thock') {
-      // Deep satisfying tactile thock (low frequency resonator)
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(180 + Math.random() * 40, t);
-      osc.frequency.exponentialRampToValueAtTime(60, t + 0.06);
-
-      gain.gain.setValueAtTime(this.volume * 0.45, t);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
-
-      // Add a subtle click transient
+      // Crisp clicky mechanical switch (Cherry MX Blue snap + housing clack)
+      // 1. High-frequency click-jacket snap
       const clickOsc = this.ctx.createOscillator();
       const clickGain = this.ctx.createGain();
-      clickOsc.type = 'triangle';
-      clickOsc.frequency.setValueAtTime(800 + Math.random() * 200, t);
-      clickGain.gain.setValueAtTime(this.volume * 0.15, t);
-      clickGain.gain.exponentialRampToValueAtTime(0.001, t + 0.02);
+      clickOsc.type = 'square';
+      clickOsc.frequency.setValueAtTime(3200 + Math.random() * 400, t);
+      clickOsc.frequency.exponentialRampToValueAtTime(1600, t + 0.008);
+      clickGain.gain.setValueAtTime(this.volume * 0.22, t);
+      clickGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.009);
       clickOsc.connect(clickGain);
       clickGain.connect(this.ctx.destination);
       clickOsc.start(t);
-      clickOsc.stop(t + 0.025);
+      clickOsc.stop(t + 0.01);
 
-      osc.connect(gain);
-      gain.connect(this.ctx.destination);
-      osc.start(t);
-      osc.stop(t + 0.065);
+      // 2. Plastic bottom-out body clack
+      const bodyOsc = this.ctx.createOscillator();
+      const bodyGain = this.ctx.createGain();
+      bodyOsc.type = 'triangle';
+      bodyOsc.frequency.setValueAtTime(520 + Math.random() * 60, t);
+      bodyOsc.frequency.exponentialRampToValueAtTime(240, t + 0.025);
+      bodyGain.gain.setValueAtTime(this.volume * 0.35, t);
+      bodyGain.gain.exponentialRampToValueAtTime(0.001, t + 0.025);
+      bodyOsc.connect(bodyGain);
+      bodyGain.connect(this.ctx.destination);
+      bodyOsc.start(t);
+      bodyOsc.stop(t + 0.03);
+
+    } else if (this.soundPack === 'thock') {
+      // Deep, creamy tactile thock (low fundamental resonance + soft acoustic bump)
+      // 1. Warm low fundamental resonator
+      const thockOsc = this.ctx.createOscillator();
+      const thockGain = this.ctx.createGain();
+      thockOsc.type = 'sine';
+      thockOsc.frequency.setValueAtTime(190 + Math.random() * 30, t);
+      thockOsc.frequency.exponentialRampToValueAtTime(65, t + 0.055);
+      thockGain.gain.setValueAtTime(this.volume * 0.5, t);
+      thockGain.gain.exponentialRampToValueAtTime(0.001, t + 0.055);
+      thockOsc.connect(thockGain);
+      thockGain.connect(this.ctx.destination);
+      thockOsc.start(t);
+      thockOsc.stop(t + 0.06);
+
+      // 2. Soft woody acoustic transient
+      const bumpOsc = this.ctx.createOscillator();
+      const bumpGain = this.ctx.createGain();
+      bumpOsc.type = 'triangle';
+      bumpOsc.frequency.setValueAtTime(380 + Math.random() * 40, t);
+      bumpOsc.frequency.exponentialRampToValueAtTime(140, t + 0.02);
+      bumpGain.gain.setValueAtTime(this.volume * 0.25, t);
+      bumpGain.gain.exponentialRampToValueAtTime(0.001, t + 0.02);
+      bumpOsc.connect(bumpGain);
+      bumpGain.connect(this.ctx.destination);
+      bumpOsc.start(t);
+      bumpOsc.stop(t + 0.025);
+
     } else if (this.soundPack === 'pop') {
-      // Cheerful bubble pop
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(500, t);
-      osc.frequency.exponentialRampToValueAtTime(1200, t + 0.035);
-      gain.gain.setValueAtTime(this.volume * 0.3, t);
-      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.035);
-
-      osc.connect(gain);
-      gain.connect(this.ctx.destination);
-      osc.start(t);
-      osc.stop(t + 0.04);
+      // Cheerful, round bubble pop (rapid resonant inflection)
+      const popOsc = this.ctx.createOscillator();
+      const popGain = this.ctx.createGain();
+      popOsc.type = 'sine';
+      popOsc.frequency.setValueAtTime(420, t);
+      popOsc.frequency.exponentialRampToValueAtTime(920 + Math.random() * 80, t + 0.015);
+      popOsc.frequency.exponentialRampToValueAtTime(700, t + 0.035);
+      popGain.gain.setValueAtTime(this.volume * 0.4, t);
+      popGain.gain.exponentialRampToValueAtTime(0.001, t + 0.035);
+      popOsc.connect(popGain);
+      popGain.connect(this.ctx.destination);
+      popOsc.start(t);
+      popOsc.stop(t + 0.04);
     }
   }
 

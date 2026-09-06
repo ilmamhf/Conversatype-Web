@@ -160,9 +160,26 @@ export function App() {
     };
   }, [dialogue.resetScenario]);
 
-  // Toggle mute
+  const lastActiveSoundPackRef = useRef<SoundPack>(
+    settings.soundPack !== 'silent' ? settings.soundPack : 'thock'
+  );
+
+  // Keep last active sound pack updated when user changes pack
+  useEffect(() => {
+    if (settings.soundPack !== 'silent') {
+      lastActiveSoundPackRef.current = settings.soundPack;
+    }
+  }, [settings.soundPack]);
+
+  // Toggle mute (preserves user's chosen sound pack when unmuting)
   const handleToggleMute = () => {
-    const nextPack: SoundPack = settings.soundPack === 'silent' ? 'thock' : 'silent';
+    let nextPack: SoundPack;
+    if (settings.soundPack === 'silent') {
+      nextPack = lastActiveSoundPackRef.current || 'thock';
+    } else {
+      lastActiveSoundPackRef.current = settings.soundPack;
+      nextPack = 'silent';
+    }
     const updated = { ...settings, soundPack: nextPack };
     setSettings(updated);
     storage.saveSettings(updated);
