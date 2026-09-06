@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://conversatype-web.vercel.app/sitemap.xml
+Sitemap: https://conversatype.com/sitemap.xml

@@ -49,5 +49,5 @@ Speed: ${metrics.wpm} WPM (Raw: ${metrics.rawWpm})
 Accuracy: ${metrics.accuracy}% | Rank: [${tier}]
 Errors: ${metrics.errors} | Time: ${metrics.elapsedSeconds}s
 
-Practice chatting in English environments: https://conversatype.web.app/`;
+Practice chatting in English environments: https://conversatype.com/`;
 }
