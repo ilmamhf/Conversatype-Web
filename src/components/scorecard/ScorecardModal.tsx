@@ -204,10 +204,7 @@ export const ScorecardModal: React.FC<ScorecardModalProps> = ({
             variant="secondary"
             size="sm"
             className="w-full sm:w-auto"
-            onClick={() => {
-              onClose();
-              onRestart();
-            }}
+            onClick={onRestart}
           >
             <RotateCcw className="w-4 h-4 mr-1.5" />
             Try Again
@@ -217,10 +214,7 @@ export const ScorecardModal: React.FC<ScorecardModalProps> = ({
             variant="primary"
             size="sm"
             className="w-full sm:w-auto"
-            onClick={() => {
-              onClose();
-              onNextScenario();
-            }}
+            onClick={onNextScenario}
           >
             Next Scenario
             <ArrowRight className="w-4 h-4 ml-1.5" />

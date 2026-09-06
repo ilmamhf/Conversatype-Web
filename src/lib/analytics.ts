@@ -1,8 +1,8 @@
 import posthog from 'posthog-js';
 import { TypingMetrics } from '../types/typing';
 
-const POSTHOG_KEY = import.meta.env.VITE_PUBLIC_POSTHOG_KEY;
-const POSTHOG_HOST = import.meta.env.VITE_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com';
+const POSTHOG_KEY = import.meta.env.VITE_PUBLIC_POSTHOG_KEY || import.meta.env.VITE_POSTHOG_KEY;
+const POSTHOG_HOST = import.meta.env.VITE_PUBLIC_POSTHOG_HOST || import.meta.env.VITE_POSTHOG_HOST || 'https://us.i.posthog.com';
 
 let isPostHogInitialized = false;
 

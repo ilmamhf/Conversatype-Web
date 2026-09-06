@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Scenario, ScenarioCategory } from './types/scenario';
 import { UserSettings, SoundPack } from './types/settings';
 import { appScenarios } from './data/appScenarios';
@@ -67,9 +67,12 @@ export function App() {
     );
   }, [currentScenario.id, currentScenario.title, currentScenario.category, currentScenario.contextGroup]);
 
-  // When dialogue finishes, show scorecard and track completion
+  const hasShownScorecardRef = useRef(false);
+
+  // When dialogue finishes, show scorecard and track completion strictly once
   useEffect(() => {
-    if (dialogue.isFinished) {
+    if (dialogue.isFinished && !hasShownScorecardRef.current) {
+      hasShownScorecardRef.current = true;
       setIsScorecardOpen(true);
       const rank = getRankTier(
         dialogue.aggregateMetrics.wpm,
@@ -81,22 +84,44 @@ export function App() {
         dialogue.aggregateMetrics,
         rank.tier
       );
+    } else if (!dialogue.isFinished) {
+      hasShownScorecardRef.current = false;
     }
-  }, [dialogue.isFinished, currentScenario.id, currentScenario.title, dialogue.aggregateMetrics]);
+  }, [dialogue.isFinished, dialogue.aggregateMetrics, currentScenario.id, currentScenario.title]);
 
   // Switch category
   const handleSelectCategory = (cat: ScenarioCategory) => {
     if (cat === currentScenario.category) return;
+    hasShownScorecardRef.current = false;
+    setIsScorecardOpen(false);
+    dialogue.resetScenario();
     const pool = cat === 'app' ? appScenarios : realLifeScenarios;
     setCurrentScenario(pool[0]);
   };
 
   // Switch to next scenario
   const handleNextScenario = () => {
+    hasShownScorecardRef.current = false;
+    setIsScorecardOpen(false);
+    dialogue.resetScenario();
     const pool = currentScenario.category === 'app' ? appScenarios : realLifeScenarios;
     const currentIndex = pool.findIndex((s) => s.id === currentScenario.id);
     const nextScenario = pool[(currentIndex + 1) % pool.length];
     setCurrentScenario(nextScenario);
+  };
+
+  // Restart current scenario
+  const handleRestartScenario = () => {
+    hasShownScorecardRef.current = false;
+    setIsScorecardOpen(false);
+    dialogue.resetScenario();
+  };
+
+  // Close scorecard modal
+  const handleCloseScorecard = () => {
+    hasShownScorecardRef.current = false;
+    setIsScorecardOpen(false);
+    dialogue.resetScenario();
   };
 
   // Keyboard shortcut listener (Tab+Enter to restart, Escape to open scenario menu)
@@ -304,7 +329,11 @@ export function App() {
         isOpen={isScenarioModalOpen}
         onClose={() => setIsScenarioModalOpen(false)}
         currentScenarioId={currentScenario.id}
+        currentCategory={currentScenario.category}
         onSelectScenario={(s) => {
+          hasShownScorecardRef.current = false;
+          setIsScorecardOpen(false);
+          dialogue.resetScenario();
           setCurrentScenario(s);
           setIsScenarioModalOpen(false);
         }}
@@ -322,10 +351,10 @@ export function App() {
 
       <ScorecardModal
         isOpen={isScorecardOpen}
-        onClose={() => setIsScorecardOpen(false)}
+        onClose={handleCloseScorecard}
         scenario={currentScenario}
         metrics={dialogue.aggregateMetrics}
-        onRestart={dialogue.resetScenario}
+        onRestart={handleRestartScenario}
         onNextScenario={handleNextScenario}
       />
     </div>

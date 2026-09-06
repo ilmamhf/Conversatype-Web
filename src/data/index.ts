@@ -2,6 +2,8 @@ import { Scenario, ScenarioCategory } from '../types/scenario';
 import { appScenarios } from './appScenarios';
 import { realLifeScenarios } from './realLifeScenarios';
 
+export { appScenarios } from './appScenarios';
+export { realLifeScenarios } from './realLifeScenarios';
 export const allScenarios: Scenario[] = [...appScenarios, ...realLifeScenarios];
 
 export function getScenarioById(id: string): Scenario | undefined {

@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { Scenario, ContextGroup } from '../../types/scenario';
-import { allScenarios } from '../../data';
+import React, { useState, useEffect } from 'react';
+import { Scenario, ScenarioCategory } from '../../types/scenario';
+import { appScenarios, realLifeScenarios } from '../../data';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { storage } from '../../lib/storage';
@@ -9,12 +9,8 @@ import {
   Trophy,
   ArrowLeft,
   ChevronRight,
-  Briefcase,
-  Coffee,
-  MessageCircle,
-  Plane,
-  HeartPulse,
-  Sparkles,
+  MessageSquare,
+  Compass,
   Check,
 } from 'lucide-react';
 import { clsx } from 'clsx';
@@ -23,15 +19,18 @@ interface ScenarioSelectorProps {
   isOpen: boolean;
   onClose: () => void;
   currentScenarioId: string;
+  currentCategory?: ScenarioCategory;
   onSelectScenario: (scenario: Scenario) => void;
 }
 
-type SelectionPhase = 'category' | 'scenario';
+type SelectionPhase = 'format' | 'scenario';
 
-interface CategoryOption {
-  id: ContextGroup | 'all';
+interface FormatOption {
+  id: ScenarioCategory;
   title: string;
-  desc: string;
+  badge: string;
+  tagline: string;
+  description: string;
   icon: React.ReactNode;
   count: number;
 }
@@ -40,173 +39,213 @@ export const ScenarioSelector: React.FC<ScenarioSelectorProps> = ({
   isOpen,
   onClose,
   currentScenarioId,
+  currentCategory = 'app',
   onSelectScenario,
 }) => {
-  const [phase, setPhase] = useState<SelectionPhase>('category');
-  const [selectedContext, setSelectedContext] = useState<ContextGroup | 'all'>('all');
+  const [phase, setPhase] = useState<SelectionPhase>('format');
+  const [selectedFormat, setSelectedFormat] = useState<ScenarioCategory>(currentCategory);
   const [difficultyFilter, setDifficultyFilter] = useState<'all' | 'Easy' | 'Medium' | 'Hard'>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   const highScores = storage.getHighScores();
 
-  const categories: CategoryOption[] = [
+  // Sync format with current category when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedFormat(currentCategory);
+      setPhase('format');
+      setDifficultyFilter('all');
+      setSearchQuery('');
+    }
+  }, [isOpen, currentCategory]);
+
+  const formats: FormatOption[] = [
     {
-      id: 'casual',
-      title: 'Casual & Daily Banter',
-      desc: 'Late-night food orders, coffee shop barista chats, casual banter',
-      icon: <Coffee className="w-5 h-5 text-amber-500" />,
-      count: allScenarios.filter((s) => s.contextGroup === 'casual').length,
+      id: 'app',
+      title: 'App Chat Simulation',
+      badge: `${appScenarios.length} Scenarios`,
+      tagline: 'Texting, Workplace Slack & Messaging',
+      description:
+        'Practice rapid-fire messaging, informal workplace banter, IT helpdesk troubleshooting, and witty dating openers in modern chat interfaces.',
+      icon: <MessageSquare className="w-6 h-6" style={{ color: 'var(--color-brand)' }} />,
+      count: appScenarios.length,
     },
     {
-      id: 'corporate',
-      title: 'Corporate & Workplace',
-      desc: 'Tech behavioral job interview, urgent 6 PM Slack pings, IT support',
-      icon: <Briefcase className="w-5 h-5 text-blue-500" />,
-      count: allScenarios.filter((s) => s.contextGroup === 'corporate').length,
-    },
-    {
-      id: 'social',
-      title: 'Social Media & Dating',
-      desc: 'Group chat screenshot misunderstandings, witty dating app openers',
-      icon: <MessageCircle className="w-5 h-5 text-rose-500" />,
-      count: allScenarios.filter((s) => s.contextGroup === 'social').length,
-    },
-    {
-      id: 'travel',
-      title: 'Travel & Hospitality',
-      desc: 'Airport customs clearance, luxury hotel late check-in glitches',
-      icon: <Plane className="w-5 h-5 text-sky-500" />,
-      count: allScenarios.filter((s) => s.contextGroup === 'travel').length,
-    },
-    {
-      id: 'services',
-      title: 'Public & Health Services',
-      desc: 'Emergency clinic triage consultation, articulating health symptoms',
-      icon: <HeartPulse className="w-5 h-5 text-emerald-500" />,
-      count: allScenarios.filter((s) => s.contextGroup === 'services').length,
-    },
-    {
-      id: 'all',
-      title: 'All Conversations (Browse All)',
-      desc: 'View all 10 conversation scenarios across all difficulty levels',
-      icon: <Sparkles className="w-5 h-5 text-purple-500" />,
-      count: allScenarios.length,
+      id: 'real-life',
+      title: 'Real-Life Scenarios',
+      badge: `${realLifeScenarios.length} Scenarios`,
+      tagline: 'Situational Dialogues with Visual Cards',
+      description:
+        'Navigate spoken, face-to-face encounters with photographic scene cards: coffee ordering, job interviews, airport customs, clinic triage, and hotel check-in.',
+      icon: <Compass className="w-6 h-6 text-amber-500" />,
+      count: realLifeScenarios.length,
     },
   ];
 
-  const handleSelectCategory = (catId: ContextGroup | 'all') => {
-    setSelectedContext(catId);
+  const handleSelectFormat = (formatId: ScenarioCategory) => {
+    setSelectedFormat(formatId);
     setDifficultyFilter('all');
     setSearchQuery('');
     setPhase('scenario');
   };
 
-  const handleBackToCategories = () => {
-    setPhase('category');
+  const handleBackToFormats = () => {
+    setPhase('format');
   };
 
-  const activeCategoryInfo = categories.find((c) => c.id === selectedContext);
+  const handleModalClose = () => {
+    onClose();
+    setTimeout(() => setPhase('format'), 200);
+  };
 
-  const filteredScenarios = allScenarios.filter((s) => {
-    const matchesContext = selectedContext === 'all' || s.contextGroup === selectedContext;
+  // Strictly separate pools: App Chat vs Real-Life
+  const activeScenarioPool: Scenario[] = selectedFormat === 'app' ? appScenarios : realLifeScenarios;
+
+  const filteredScenarios = activeScenarioPool.filter((s: Scenario) => {
     const matchesDifficulty = difficultyFilter === 'all' || s.difficulty === difficultyFilter;
     const matchesSearch =
       s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       s.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
       s.targetAudienceTag.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesContext && matchesDifficulty && matchesSearch;
+    return matchesDifficulty && matchesSearch;
   });
-
-  const handleModalClose = () => {
-    onClose();
-    // Reset to category phase on next open
-    setTimeout(() => setPhase('category'), 200);
-  };
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={handleModalClose}
-      title={phase === 'category' ? 'Step 1: Choose Conversation Type' : 'Step 2: Choose Scenario'}
+      title={
+        phase === 'format'
+          ? 'Step 1: Choose Simulation Format'
+          : `Step 2: Choose ${selectedFormat === 'app' ? 'App Chat' : 'Real-Life'} Scenario`
+      }
       maxWidth="xl"
     >
       <div className="space-y-4">
-        {/* PHASE 1: Category Selection Grid */}
-        {phase === 'category' && (
-          <div className="space-y-3">
+        {/* PHASE 1: Format Selection (App Chat vs Real-Life) */}
+        {phase === 'format' && (
+          <div className="space-y-4">
             <p
               style={{ color: 'var(--text-secondary)' }}
               className="text-xs sm:text-sm font-medium"
             >
-              Select the conversational environment you want to practice typing in:
+              Choose the conversation simulation format you want to practice:
             </p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[60vh] overflow-y-auto pr-1">
-              {categories.map((cat) => (
-                <div
-                  key={cat.id}
-                  onClick={() => handleSelectCategory(cat.id)}
-                  style={{
-                    backgroundColor: 'var(--bg-surface)',
-                    borderColor: 'var(--border-app)',
-                  }}
-                  className="group p-4 rounded-2xl border-2 hover:border-brand-500 transition-all cursor-pointer flex items-center justify-between gap-3 shadow-xs hover:shadow-md select-none"
-                >
-                  <div className="flex items-start gap-3 min-w-0">
-                    <div
-                      style={{
-                        backgroundColor: 'var(--bg-surface-secondary)',
-                        borderColor: 'var(--border-app)',
-                      }}
-                      className="w-11 h-11 rounded-xl border-2 flex items-center justify-center shrink-0 shadow-xs"
-                    >
-                      {cat.icon}
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h4
-                          style={{ color: 'var(--text-primary)' }}
-                          className="font-extrabold text-sm truncate"
-                        >
-                          {cat.title}
-                        </h4>
-                        <span
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {formats.map((fmt) => {
+                const isCurrentActiveFormat = currentCategory === fmt.id;
+
+                return (
+                  <div
+                    key={fmt.id}
+                    onClick={() => handleSelectFormat(fmt.id)}
+                    style={{
+                      backgroundColor: 'var(--bg-surface)',
+                      borderColor: isCurrentActiveFormat ? 'var(--color-brand)' : 'var(--border-app)',
+                      boxShadow: isCurrentActiveFormat
+                        ? '0 4px 0 0 var(--color-brand-shadow)'
+                        : '0 2px 0 0 var(--border-app)',
+                    }}
+                    className={clsx(
+                      'group p-5 rounded-3xl border-2 transition-all cursor-pointer flex flex-col justify-between shadow-xs select-none hover:brightness-98',
+                      isCurrentActiveFormat && 'translate-y-[-2px]'
+                    )}
+                  >
+                    <div>
+                      <div className="flex items-center justify-between gap-2 mb-3">
+                        <div
                           style={{
                             backgroundColor: 'var(--bg-surface-secondary)',
-                            color: 'var(--text-secondary)',
                             borderColor: 'var(--border-app)',
                           }}
-                          className="text-[10px] font-bold px-2 py-0.2 rounded-full border shrink-0"
+                          className="w-12 h-12 rounded-2xl border-2 flex items-center justify-center shadow-xs"
                         >
-                          {cat.count}
-                        </span>
+                          {fmt.icon}
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          {isCurrentActiveFormat && (
+                            <span
+                              style={{
+                                backgroundColor: 'var(--color-brand)',
+                                color: 'var(--color-brand-text)',
+                              }}
+                              className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full"
+                            >
+                              Current
+                            </span>
+                          )}
+                          <span
+                            style={{
+                              backgroundColor:
+                                fmt.id === 'app' ? 'rgba(88, 204, 2, 0.15)' : 'rgba(245, 158, 11, 0.15)',
+                              color: fmt.id === 'app' ? 'var(--color-brand)' : '#f59e0b',
+                            }}
+                            className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full"
+                          >
+                            {fmt.badge}
+                          </span>
+                        </div>
                       </div>
+
+                      <h3
+                        style={{ color: 'var(--text-primary)' }}
+                        className="font-extrabold text-base sm:text-lg tracking-tight mb-0.5"
+                      >
+                        {fmt.title}
+                      </h3>
+                      <p
+                        style={{ color: 'var(--color-brand)' }}
+                        className="text-xs font-bold mb-2"
+                      >
+                        {fmt.tagline}
+                      </p>
                       <p
                         style={{ color: 'var(--text-secondary)' }}
-                        className="text-xs line-clamp-2 mt-0.5"
+                        className="text-xs leading-relaxed mb-4"
                       >
-                        {cat.desc}
+                        {fmt.description}
                       </p>
                     </div>
-                  </div>
 
-                  <ChevronRight
-                    className="w-5 h-5 shrink-0 transition-transform group-hover:translate-x-1"
-                    style={{ color: 'var(--color-brand)' }}
-                  />
-                </div>
-              ))}
+                    <div
+                      style={{
+                        borderColor: 'var(--border-app)',
+                        backgroundColor: 'var(--bg-surface-secondary)',
+                      }}
+                      className="p-3 rounded-2xl border flex items-center justify-between"
+                    >
+                      <span
+                        className="text-[11px] font-bold"
+                        style={{ color: 'var(--text-secondary)' }}
+                      >
+                        5 Scenarios Available
+                      </span>
+                      <div
+                        className="flex items-center gap-1 text-xs font-bold"
+                        style={{ color: 'var(--color-brand)' }}
+                      >
+                        <span>Choose</span>
+                        <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
 
-        {/* PHASE 2: Scenario Drilldown */}
+        {/* PHASE 2: Scenario Selection (Strictly Separated Pool) */}
         {phase === 'scenario' && (
           <div className="space-y-3.5">
-            {/* Navigation Header & Category Breadcrumb */}
-            <div className="flex items-center justify-between gap-2 border-b-2 pb-2.5" style={{ borderColor: 'var(--border-app)' }}>
+            {/* Navigation Header */}
+            <div
+              className="flex items-center justify-between gap-2 border-b-2 pb-2.5"
+              style={{ borderColor: 'var(--border-app)' }}
+            >
               <button
-                onClick={handleBackToCategories}
+                onClick={handleBackToFormats}
                 style={{
                   backgroundColor: 'var(--bg-surface-secondary)',
                   borderColor: 'var(--border-app)',
@@ -215,11 +254,24 @@ export const ScenarioSelector: React.FC<ScenarioSelectorProps> = ({
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border-2 text-xs font-bold hover:brightness-95 transition-all select-none"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
-                <span>Back to Types</span>
+                <span>Back to Formats</span>
               </button>
 
-              <div className="text-xs font-bold text-right truncate" style={{ color: 'var(--color-brand)' }}>
-                {activeCategoryInfo?.title}
+              <div
+                className="text-xs font-extrabold text-right truncate flex items-center gap-2"
+                style={{ color: 'var(--color-brand)' }}
+              >
+                <span>{selectedFormat === 'app' ? '💬 App Chat Simulations' : '🌍 Real-Life Scenarios'}</span>
+                <span
+                  style={{
+                    backgroundColor: 'var(--bg-surface-secondary)',
+                    color: 'var(--text-secondary)',
+                    borderColor: 'var(--border-app)',
+                  }}
+                  className="text-[10px] font-bold px-2 py-0.5 rounded-full border"
+                >
+                  {filteredScenarios.length} {filteredScenarios.length === 1 ? 'scenario' : 'scenarios'}
+                </span>
               </div>
             </div>
 
@@ -229,7 +281,7 @@ export const ScenarioSelector: React.FC<ScenarioSelectorProps> = ({
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
                   type="text"
-                  placeholder="Search topic or English keyword..."
+                  placeholder={`Search ${selectedFormat === 'app' ? 'chat topics' : 'real-life scenes'}...`}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   style={{
@@ -280,7 +332,7 @@ export const ScenarioSelector: React.FC<ScenarioSelectorProps> = ({
                   No scenarios found matching your filters.
                 </div>
               ) : (
-                filteredScenarios.map((item) => {
+                filteredScenarios.map((item: Scenario) => {
                   const isSelected = item.id === currentScenarioId;
                   const highScore = highScores[item.id];
 
