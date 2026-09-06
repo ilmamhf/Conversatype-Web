@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { TypedCharRecord, TypingMetrics, WpmSample } from '../types/typing';
+import { SoundPack } from '../types/settings';
 import { calculateMetrics } from '../lib/metrics';
 import { soundService } from '../lib/audio';
 
@@ -14,10 +15,16 @@ export interface SentenceCompletionStats {
 interface UseTypingEngineProps {
   targetText: string;
   isActive: boolean;
+  soundPack?: SoundPack;
   onSentenceComplete: (stats: SentenceCompletionStats) => void;
 }
 
-export function useTypingEngine({ targetText, isActive, onSentenceComplete }: UseTypingEngineProps) {
+export function useTypingEngine({
+  targetText,
+  isActive,
+  soundPack = 'thock',
+  onSentenceComplete,
+}: UseTypingEngineProps) {
   const [history, setHistory] = useState<TypedCharRecord[]>([]);
   const [errors, setErrors] = useState<number>(0);
   const [startTime, setStartTime] = useState<number | null>(null);
@@ -99,10 +106,10 @@ export function useTypingEngine({ targetText, isActive, onSentenceComplete }: Us
     if (!isActive) return;
     setHistory((prev) => {
       if (prev.length === 0) return prev;
-      soundService.playKeyClick();
+      soundService.playKeyClick(soundPack);
       return prev.slice(0, -1);
     });
-  }, [isActive]);
+  }, [isActive, soundPack]);
 
   const handleCharTyped = useCallback(
     (typedChar: string) => {
@@ -130,7 +137,7 @@ export function useTypingEngine({ targetText, isActive, onSentenceComplete }: Us
 
       // Sound feedback
       if (isCorrect) {
-        soundService.playKeyClick();
+        soundService.playKeyClick(soundPack);
       } else {
         soundService.playError();
         setErrors((err) => err + 1);
@@ -161,7 +168,7 @@ export function useTypingEngine({ targetText, isActive, onSentenceComplete }: Us
         });
       }
     },
-    [isActive, targetText, history, startTime, errors, onSentenceComplete]
+    [isActive, targetText, history, startTime, errors, onSentenceComplete, soundPack]
   );
 
   const handleKeyDown = useCallback(

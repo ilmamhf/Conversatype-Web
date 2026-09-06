@@ -350,10 +350,7 @@ export const ScenarioSelector: React.FC<ScenarioSelectorProps> = ({
                           ? '0 2px 0 0 var(--color-brand-shadow)'
                           : '0 2px 0 0 var(--border-app)',
                       }}
-                      className={clsx(
-                        'group p-3.5 rounded-2xl border-2 transition-all cursor-pointer flex flex-col justify-between text-left select-none relative hover:brightness-98',
-                        isSelected && 'ring-1 ring-brand-500/30'
-                      )}
+                      className="group p-3.5 rounded-2xl border-2 transition-all cursor-pointer flex flex-col justify-between text-left select-none relative hover:brightness-98"
                     >
                       <div>
                         {/* Top Row: Visual Avatar & Badges */}

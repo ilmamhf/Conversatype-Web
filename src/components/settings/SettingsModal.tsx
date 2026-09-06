@@ -97,8 +97,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     borderColor: isSelected ? 'var(--color-brand)' : 'var(--border-app)',
                   }}
                   className={clsx(
-                    'p-3 rounded-2xl border-2 text-left transition-all relative flex flex-col justify-between',
-                    isSelected && 'ring-2 ring-brand-500/40'
+                    'p-3 rounded-2xl border-2 text-left transition-all relative flex flex-col justify-between cursor-pointer',
+                    isSelected && 'shadow-xs'
                   )}
                 >
                   <div className="flex items-center justify-between mb-1.5">
@@ -149,7 +149,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   }}
                   className={clsx(
                     'p-3 rounded-2xl border-2 text-left transition-all relative flex flex-col justify-between cursor-pointer',
-                    isSelected && 'ring-2 ring-brand-500/40 shadow-xs'
+                    isSelected && 'shadow-xs'
                   )}
                 >
                   <div className="flex items-center justify-between mb-1">
@@ -197,8 +197,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     color: isSelected ? 'var(--color-brand)' : 'var(--text-secondary)',
                   }}
                   className={clsx(
-                    'py-2 px-2 rounded-2xl border-2 text-center text-xs font-bold transition-all',
-                    isSelected && 'ring-2 ring-brand-500/40'
+                    'py-2 px-2 rounded-2xl border-2 text-center text-xs font-bold transition-all cursor-pointer',
+                    isSelected && 'shadow-xs'
                   )}
                 >
                   {opt.label}

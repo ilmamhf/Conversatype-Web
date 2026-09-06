@@ -54,6 +54,7 @@ export function App() {
   const typing = useTypingEngine({
     targetText: targetSentence,
     isActive: dialogue.isUserTurn,
+    soundPack: settings.soundPack,
     onSentenceComplete: dialogue.handleUserSentenceComplete,
   });
 

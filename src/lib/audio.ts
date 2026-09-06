@@ -25,16 +25,15 @@ class SoundSynthesizer {
     this.volume = Math.max(0, Math.min(1, vol));
   }
 
-  public playKeyClick() {
-    if (this.soundPack === 'silent' || this.volume <= 0) return;
+  public playKeyClick(pack?: SoundPack) {
+    const activePack = pack || this.soundPack;
+    if (activePack === 'silent' || this.volume <= 0) return;
     this.initContext();
     if (!this.ctx) return;
 
     const t = this.ctx.currentTime;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
 
-    if (this.soundPack === 'cherry') {
+    if (activePack === 'cherry') {
       // Crisp clicky mechanical switch (Cherry MX Blue snap + housing clack)
       // 1. High-frequency click-jacket snap
       const clickOsc = this.ctx.createOscillator();
@@ -62,7 +61,7 @@ class SoundSynthesizer {
       bodyOsc.start(t);
       bodyOsc.stop(t + 0.03);
 
-    } else if (this.soundPack === 'thock') {
+    } else if (activePack === 'thock') {
       // Deep, creamy tactile thock (low fundamental resonance + soft acoustic bump)
       // 1. Warm low fundamental resonator
       const thockOsc = this.ctx.createOscillator();
@@ -90,7 +89,7 @@ class SoundSynthesizer {
       bumpOsc.start(t);
       bumpOsc.stop(t + 0.025);
 
-    } else if (this.soundPack === 'pop') {
+    } else if (activePack === 'pop') {
       // Cheerful, round bubble pop (rapid resonant inflection)
       const popOsc = this.ctx.createOscillator();
       const popGain = this.ctx.createGain();
