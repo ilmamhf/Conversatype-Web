@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://conversatype.com/sitemap.xml
+Sitemap: https://www.conversatype.com/sitemap.xml
