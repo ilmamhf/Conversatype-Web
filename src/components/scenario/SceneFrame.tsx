@@ -18,12 +18,12 @@ export const SceneFrame: React.FC<SceneFrameProps> = ({ scenario, layoutMode = '
           backgroundColor: 'var(--bg-surface)',
           borderColor: 'var(--border-app)',
         }}
-        className="flex items-center gap-3 p-2 rounded-2xl border-2 shadow-sm shrink-0 md:hidden"
+        className="flex items-center gap-2.5 p-1.5 sm:p-2 rounded-2xl border-2 shadow-sm shrink-0 md:hidden"
       >
         <img
           src={scenario.sceneImage}
           alt={scenario.title}
-          className="w-12 h-12 rounded-xl object-cover shrink-0"
+          className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl object-cover shrink-0"
         />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">

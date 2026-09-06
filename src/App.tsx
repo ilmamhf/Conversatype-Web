@@ -151,7 +151,7 @@ export function App() {
         backgroundColor: 'var(--bg-app)',
         color: 'var(--text-primary)',
       }}
-      className="h-screen w-screen max-h-screen overflow-hidden flex flex-col font-sans transition-colors duration-200"
+      className="h-dvh w-screen max-h-dvh overflow-hidden flex flex-col font-sans transition-colors duration-200"
     >
       {/* Navigation Header */}
       <Header
@@ -284,16 +284,20 @@ export function App() {
               metrics={typing.metrics}
               progressPercent={typing.progressPercent}
               caretStyle={settings.caretStyle}
+              onCharInput={typing.handleCharTyped}
+              onBackspace={typing.handleBackspace}
             />
           </div>
         </div>
       </main>
 
-      {/* Global Footer (Compact) */}
-      <Footer
-        onRestart={dialogue.resetScenario}
-        onOpenScenarios={() => setIsScenarioModalOpen(true)}
-      />
+      {/* Global Footer (Desktop only to maximize mobile typing space) */}
+      <div className="hidden sm:block">
+        <Footer
+          onRestart={dialogue.resetScenario}
+          onOpenScenarios={() => setIsScenarioModalOpen(true)}
+        />
+      </div>
 
       {/* Modals */}
       <ScenarioSelector

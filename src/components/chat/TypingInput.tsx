@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { TypedCharRecord, TypingMetrics } from '../../types/typing';
 import { CaretStyle } from '../../types/settings';
 import { Zap, AlertCircle, CheckCircle2 } from 'lucide-react';
@@ -13,6 +13,8 @@ interface TypingInputProps {
   metrics: TypingMetrics;
   progressPercent: number;
   caretStyle?: CaretStyle;
+  onCharInput?: (char: string) => void;
+  onBackspace?: () => void;
 }
 
 export const TypingInput: React.FC<TypingInputProps> = ({
@@ -24,8 +26,13 @@ export const TypingInput: React.FC<TypingInputProps> = ({
   metrics,
   progressPercent,
   caretStyle = 'line',
+  onCharInput,
+  onBackspace,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [isFocused, setIsFocused] = useState(false);
+  const [inputValue, setInputValue] = useState('  '); // 2-space buffer to prevent Android backspace swallowing
 
   // Auto-scroll inside typing box if text wraps
   useEffect(() => {
@@ -36,6 +43,61 @@ export const TypingInput: React.FC<TypingInputProps> = ({
       }
     }
   }, [currentIndex]);
+
+  // Keep input buffer primed when turn or target text changes
+  useEffect(() => {
+    setInputValue('  ');
+    if (isUserTurn && isFocused && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isUserTurn, targetText]);
+
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!isUserTurn) return;
+
+    // Handle Backspace for hardware keyboards
+    if (e.key === 'Backspace') {
+      e.preventDefault();
+      onBackspace?.();
+      setInputValue('  ');
+      return;
+    }
+
+    // Single printable character
+    if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey && e.key !== 'Unidentified') {
+      e.preventDefault();
+      onCharInput?.(e.key);
+      setInputValue('  ');
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!isUserTurn) return;
+    const val = e.target.value;
+
+    if (val.length < 2) {
+      // User pressed Backspace on mobile keyboard
+      const deletesCount = 2 - val.length;
+      for (let i = 0; i < deletesCount; i++) {
+        onBackspace?.();
+      }
+    } else if (val.length > 2) {
+      // User typed character(s) on mobile keyboard
+      const addedText = val.slice(2);
+      for (const char of addedText) {
+        onCharInput?.(char);
+      }
+    }
+
+    // Reset back to 2-space buffer
+    setInputValue('  ');
+  };
+
+  const handleSurfaceClick = () => {
+    if (isUserTurn && inputRef.current) {
+      inputRef.current.focus();
+    }
+  };
 
   const renderCharacters = () => {
     if (!targetText) return null;
@@ -98,7 +160,7 @@ export const TypingInput: React.FC<TypingInputProps> = ({
         backgroundColor: 'var(--bg-surface)',
         borderColor: 'var(--border-app)',
       }}
-      className="border-t px-4 py-3 sm:py-3.5 rounded-b-3xl shrink-0 transition-colors duration-200"
+      className="border-t px-3 py-2 sm:px-4 sm:py-3.5 rounded-b-3xl shrink-0 transition-colors duration-200"
     >
       {/* Top Status & Live Metrics Header */}
       <div className="flex items-center justify-between text-xs mb-2 font-semibold select-none">
@@ -170,15 +232,52 @@ export const TypingInput: React.FC<TypingInputProps> = ({
       {/* Interactive Typing Surface */}
       <div
         ref={containerRef}
+        onClick={handleSurfaceClick}
         style={{
           backgroundColor: 'var(--bg-surface-secondary)',
           borderColor: isUserTurn ? 'var(--color-brand)' : 'var(--border-app)',
         }}
         className={clsx(
-          'relative w-full min-h-[72px] max-h-[110px] p-3 rounded-2xl border-2 transition-all duration-150 overflow-y-auto font-mono text-base md:text-lg leading-relaxed shadow-inner',
+          'relative w-full min-h-[58px] sm:min-h-[72px] max-h-[88px] sm:max-h-[110px] p-2.5 sm:p-3 rounded-2xl border-2 transition-all duration-150 overflow-y-auto font-mono text-sm sm:text-base md:text-lg leading-relaxed shadow-inner cursor-text',
           !isUserTurn && 'opacity-60 cursor-not-allowed'
         )}
       >
+        {/* Hidden Transparent Input for Mobile Virtual Keyboard & Physical Keyboards */}
+        <input
+          ref={inputRef}
+          type="text"
+          value={inputValue}
+          onChange={handleInputChange}
+          onKeyDown={handleInputKeyDown}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          autoCapitalize="none"
+          autoCorrect="off"
+          autoComplete="off"
+          spellCheck={false}
+          inputMode="text"
+          enterKeyHint="done"
+          disabled={!isUserTurn}
+          aria-label="Conversational typing input"
+          className="absolute inset-0 w-full h-full opacity-0 z-20 cursor-text caret-transparent"
+        />
+
+        {/* Mobile Tap-to-Type Visual Affordance */}
+        {isUserTurn && !isFocused && (
+          <div className="absolute right-2.5 bottom-2 sm:hidden z-30 pointer-events-none">
+            <span
+              style={{
+                backgroundColor: 'var(--color-brand)',
+                color: 'var(--color-brand-text)',
+                boxShadow: '0 2px 0 0 var(--color-brand-shadow)',
+              }}
+              className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold animate-pulse shadow-md"
+            >
+              Tap to type ⌨️
+            </span>
+          </div>
+        )}
+
         {isUserTurn ? (
           <div className="whitespace-pre-wrap break-words tracking-wide">
             {renderCharacters()}
@@ -186,7 +285,7 @@ export const TypingInput: React.FC<TypingInputProps> = ({
         ) : (
           <div
             style={{ color: 'var(--text-muted)' }}
-            className="flex items-center justify-center h-full text-sm font-sans italic"
+            className="flex items-center justify-center h-full text-xs sm:text-sm font-sans italic"
           >
             {isNpcTyping ? 'NPC is drafting a response...' : 'Prepare for next message...'}
           </div>

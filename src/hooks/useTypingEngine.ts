@@ -95,36 +95,23 @@ export function useTypingEngine({ targetText, isActive, onSentenceComplete }: Us
     };
   }, [isActive, startTime, history, errors]);
 
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
+  const handleBackspace = useCallback(() => {
+    if (!isActive) return;
+    setHistory((prev) => {
+      if (prev.length === 0) return prev;
+      soundService.playKeyClick();
+      return prev.slice(0, -1);
+    });
+  }, [isActive]);
+
+  const handleCharTyped = useCallback(
+    (typedChar: string) => {
       if (!isActive || !targetText) return;
-
-      // Ignore meta keys
-      if (e.ctrlKey || e.altKey || e.metaKey) return;
-      if (['Shift', 'CapsLock', 'Tab', 'Escape', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
-        return;
-      }
-
-      // Handle Backspace
-      if (e.key === 'Backspace') {
-        e.preventDefault();
-        setHistory((prev) => {
-          if (prev.length === 0) return prev;
-          soundService.playKeyClick();
-          return prev.slice(0, -1);
-        });
-        return;
-      }
-
-      // Only single character printable keys
-      if (e.key.length !== 1) return;
-      e.preventDefault();
 
       const currentIndex = history.length;
       if (currentIndex >= targetText.length) return;
 
       const expectedChar = targetText[currentIndex];
-      const typedChar = e.key;
       const isCorrect =
         typedChar === expectedChar ||
         ((typedChar === "'" || typedChar === '’' || typedChar === '`') &&
@@ -177,6 +164,37 @@ export function useTypingEngine({ targetText, isActive, onSentenceComplete }: Us
     [isActive, targetText, history, startTime, errors, onSentenceComplete]
   );
 
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (!isActive || !targetText) return;
+
+      // If user is focused on an input element, let the element handle it directly
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) {
+        return;
+      }
+
+      // Ignore meta keys
+      if (e.ctrlKey || e.altKey || e.metaKey) return;
+      if (['Shift', 'CapsLock', 'Tab', 'Escape', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
+        return;
+      }
+
+      // Handle Backspace
+      if (e.key === 'Backspace') {
+        e.preventDefault();
+        handleBackspace();
+        return;
+      }
+
+      // Only single character printable keys
+      if (e.key.length !== 1 || e.key === 'Unidentified') return;
+      e.preventDefault();
+      handleCharTyped(e.key);
+    },
+    [isActive, targetText, handleBackspace, handleCharTyped]
+  );
+
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
@@ -193,5 +211,7 @@ export function useTypingEngine({ targetText, isActive, onSentenceComplete }: Us
     metrics,
     progressPercent,
     isComplete: currentIndex >= targetText.length && targetText.length > 0,
+    handleCharTyped,
+    handleBackspace,
   };
 }
