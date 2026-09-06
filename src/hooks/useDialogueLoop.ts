@@ -7,13 +7,26 @@ import { calculateMetrics, getRankTier } from '../lib/metrics';
 import { SentenceCompletionStats } from './useTypingEngine';
 import confetti from 'canvas-confetti';
 
+/**
+ * useDialogueLoop
+ * 
+ * Conversational Turn Sequencer and Orchestrator.
+ * 
+ * Manages the state machine of an interactive dialogue:
+ * 1. Simulates realistic NPC typing latency with customizable delays (e.g., 650ms).
+ * 2. Emits conversational audio events (incoming chime, outgoing send, completion fanfare).
+ * 3. Accumulates typing statistics (correct characters, errors, elapsed time) across all user turns.
+ * 4. Triggers celebration confetti, computes final metrics & rank tier, and records personal bests to LocalStorage.
+ * 
+ * @param scenario - The currently active dialogue scenario definition.
+ */
 export function useDialogueLoop(scenario: Scenario) {
   const [currentTurnIndex, setCurrentTurnIndex] = useState<number>(0);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isNpcTyping, setIsNpcTyping] = useState<boolean>(false);
   const [isFinished, setIsFinished] = useState<boolean>(false);
   
-  // Aggregate tracking across entire conversation
+  // Cumulative session tracking across all user turns in the scenario
   const sessionStartTimeRef = useRef<number | null>(null);
   const cumulativeCorrectCharsRef = useRef<number>(0);
   const cumulativeTotalCharsRef = useRef<number>(0);

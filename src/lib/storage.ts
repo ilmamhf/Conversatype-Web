@@ -1,8 +1,22 @@
+/**
+ * Conversatype Local Persistence Service
+ *
+ * Provides safe client-side caching of:
+ * - User Preferences (audio soundpack, volume, visual theme, caret style, scene card toggle).
+ * - Scenario High Scores (personal best WPM, accuracy, rank tier, completion date).
+ *
+ * Wrapped in defensive try/catch blocks to gracefully tolerate private browsing modes,
+ * disabled localStorage, or quota limits.
+ */
+
 import { UserSettings } from '../types/settings';
 
 const SETTINGS_KEY = 'conversatype_settings_v1';
 const SCORES_KEY = 'conversatype_highscores_v1';
 
+/**
+ * Historical personal-best record achieved by the user for a specific scenario.
+ */
 export interface HighScoreRecord {
   scenarioId: string;
   wpm: number;
@@ -12,6 +26,9 @@ export interface HighScoreRecord {
   date: string;
 }
 
+/**
+ * Default fallback settings when no user preferences have been saved yet.
+ */
 const DEFAULT_SETTINGS: UserSettings = {
   soundPack: 'thock',
   soundVolume: 0.6,
@@ -21,6 +38,9 @@ const DEFAULT_SETTINGS: UserSettings = {
 };
 
 export const storage = {
+  /**
+   * Retrieves user settings from localStorage or returns default fallback.
+   */
   getSettings(): UserSettings {
     try {
       const stored = localStorage.getItem(SETTINGS_KEY);
@@ -30,7 +50,10 @@ export const storage = {
     }
   },
 
-  saveSettings(settings: UserSettings) {
+  /**
+   * Saves updated user settings to localStorage.
+   */
+  saveSettings(settings: UserSettings): void {
     try {
       localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
     } catch (e) {
@@ -38,6 +61,11 @@ export const storage = {
     }
   },
 
+  /**
+   * Retrieves all recorded scenario high scores.
+   *
+   * @returns A map of scenarioId -> HighScoreRecord.
+   */
   getHighScores(): Record<string, HighScoreRecord> {
     try {
       const stored = localStorage.getItem(SCORES_KEY);
@@ -47,7 +75,10 @@ export const storage = {
     }
   },
 
-  saveHighScore(record: HighScoreRecord) {
+  /**
+   * Persists a newly completed scenario record if it beats the existing personal best WPM.
+   */
+  saveHighScore(record: HighScoreRecord): void {
     try {
       const current = this.getHighScores();
       const existing = current[record.scenarioId];
@@ -58,5 +89,5 @@ export const storage = {
     } catch (e) {
       console.warn('Unable to persist high scores to localStorage', e);
     }
-  }
+  },
 };

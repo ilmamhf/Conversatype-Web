@@ -23,29 +23,20 @@ import { RotateCcw } from 'lucide-react';
 import { clsx } from 'clsx';
 
 export function App() {
+  /* =================== 1. State & Persistent Settings =================== */
   const [settings, setSettings] = useState<UserSettings>(() => storage.getSettings());
   const [currentScenario, setCurrentScenario] = useState<Scenario>(() => appScenarios[0]);
 
-  // Modals state
+  // Modal visibility states
   const [isScenarioModalOpen, setIsScenarioModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isScorecardOpen, setIsScorecardOpen] = useState(false);
 
-  // Sync active theme with HTML document element
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', settings.theme);
-  }, [settings.theme]);
-
-  // Sync sound settings with audio synthesizer
-  useEffect(() => {
-    soundService.setSoundPack(settings.soundPack);
-    soundService.setVolume(settings.soundVolume);
-  }, [settings.soundPack, settings.soundVolume]);
-
-  // Dialogue loop state machine
+  /* =================== 2. Subsystems: Dialogue & Typing Engine =================== */
+  // Dialogue loop state machine (orchestrates turns, NPC delays, sounds, cumulative stats)
   const dialogue = useDialogueLoop(currentScenario);
 
-  // Monkeytype typing engine for user turn
+  // Monkeytype typing engine for the user's active turn
   const targetSentence =
     dialogue.isUserTurn && dialogue.currentTurn?.speaker === 'user'
       ? dialogue.currentTurn.text
@@ -58,7 +49,19 @@ export function App() {
     onSentenceComplete: dialogue.handleUserSentenceComplete,
   });
 
-  // Track scenario start
+  /* =================== 3. System Synchronizations & Analytics =================== */
+  // Sync active theme with HTML document element
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', settings.theme);
+  }, [settings.theme]);
+
+  // Sync sound settings with audio synthesizer
+  useEffect(() => {
+    soundService.setSoundPack(settings.soundPack);
+    soundService.setVolume(settings.soundVolume);
+  }, [settings.soundPack, settings.soundVolume]);
+
+  // Track scenario start in analytics
   useEffect(() => {
     analytics.trackScenarioStarted(
       currentScenario.id,
@@ -90,7 +93,8 @@ export function App() {
     }
   }, [dialogue.isFinished, dialogue.aggregateMetrics, currentScenario.id, currentScenario.title]);
 
-  // Switch category
+  /* =================== 4. Navigation & Lifecycle Handlers =================== */
+  // Switch category (app chat vs real-life)
   const handleSelectCategory = (cat: ScenarioCategory) => {
     if (cat === currentScenario.category) return;
     hasShownScorecardRef.current = false;
@@ -100,7 +104,7 @@ export function App() {
     setCurrentScenario(pool[0]);
   };
 
-  // Switch to next scenario
+  // Advance to next scenario in current pool
   const handleNextScenario = () => {
     hasShownScorecardRef.current = false;
     setIsScorecardOpen(false);
@@ -125,7 +129,8 @@ export function App() {
     dialogue.resetScenario();
   };
 
-  // Keyboard shortcut listener (Tab+Enter to restart, Escape to open scenario menu)
+  /* =================== 5. Global Keyboard Shortcuts =================== */
+  // Quick navigation: Tab+Enter to restart, Escape to open scenario browser
   useEffect(() => {
     let tabPressed = false;
     let tabTimeout: number | null = null;
@@ -161,6 +166,7 @@ export function App() {
     };
   }, [dialogue.resetScenario]);
 
+  /* =================== 6. Audio Preferences =================== */
   const lastActiveSoundPackRef = useRef<SoundPack>(
     settings.soundPack !== 'silent' ? settings.soundPack : 'thock'
   );

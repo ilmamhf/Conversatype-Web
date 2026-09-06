@@ -32,7 +32,21 @@ export const TypingInput: React.FC<TypingInputProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [isFocused, setIsFocused] = useState(false);
-  const [inputValue, setInputValue] = useState('  '); // 2-space buffer to prevent Android backspace swallowing
+
+  /**
+   * Android Chrome & Mobile Virtual Keyboard Buffer:
+   * 
+   * Mobile browsers (notably Android Chrome with GBoard / Samsung Keyboard) emit
+   * keyCode 229 ("Unidentified") for keydown events during composition. Crucially,
+   * if an <input> is empty (""), pressing Backspace on a virtual keyboard produces NO
+   * change or input event because there is nothing to delete.
+   * 
+   * Solution: We prime the hidden input with a 2-space buffer ('  ').
+   * - Backspace: val.length becomes < 2 -> we detect (2 - val.length) deletions and trigger onBackspace.
+   * - Typed Char: val.length becomes > 2 -> we extract val.slice(2) and trigger onCharInput.
+   * - In either case, we reset the buffer back to '  ' synchronously.
+   */
+  const [inputValue, setInputValue] = useState('  ');
 
   // Auto-scroll inside typing box if text wraps
   useEffect(() => {
@@ -76,20 +90,20 @@ export const TypingInput: React.FC<TypingInputProps> = ({
     const val = e.target.value;
 
     if (val.length < 2) {
-      // User pressed Backspace on mobile keyboard
+      // User pressed Backspace on mobile keyboard (deleted one or more buffer spaces)
       const deletesCount = 2 - val.length;
       for (let i = 0; i < deletesCount; i++) {
         onBackspace?.();
       }
     } else if (val.length > 2) {
-      // User typed character(s) on mobile keyboard
+      // User typed character(s) or accepted autocomplete on mobile keyboard
       const addedText = val.slice(2);
       for (const char of addedText) {
         onCharInput?.(char);
       }
     }
 
-    // Reset back to 2-space buffer
+    // Synchronously reset buffer back to 2 spaces
     setInputValue('  ');
   };
 

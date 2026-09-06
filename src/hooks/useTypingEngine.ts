@@ -4,21 +4,47 @@ import { SoundPack } from '../types/settings';
 import { calculateMetrics } from '../lib/metrics';
 import { soundService } from '../lib/audio';
 
+/**
+ * Statistical summary passed to the parent dialogue loop upon completing a turn.
+ */
 export interface SentenceCompletionStats {
+  /** Total incorrect keystrokes recorded during this sentence turn. */
   errors: number;
+  /** Total characters in the target sentence. */
   totalChars: number;
+  /** Characters typed correctly on first evaluation. */
   correctChars: number;
+  /** Milliseconds elapsed from the first keystroke to sentence completion. */
   durationMs: number;
+  /** Chronological WPM timeline sampled at 500ms intervals. */
   wpmHistory: WpmSample[];
 }
 
 interface UseTypingEngineProps {
+  /** The target dialogue string the user must type. */
   targetText: string;
+  /** Whether the user is currently allowed to type (their turn is active). */
   isActive: boolean;
+  /** Active sound pack for acoustic feedback (default: 'thock'). */
   soundPack?: SoundPack;
+  /** Callback fired once all characters of targetText have been typed. */
   onSentenceComplete: (stats: SentenceCompletionStats) => void;
 }
 
+/**
+ * useTypingEngine
+ * 
+ * Core Monkeytype-grade typing engine hook.
+ * 
+ * Key Responsibilities:
+ * 1. Tracks character-by-character typed history with strict position matching.
+ * 2. Provides smart quote normalization (straight quotes match typographic quotes).
+ * 3. Handles backspacing and rollback without desynchronizing state.
+ * 4. Dispatches acoustic feedback using the injected soundPack.
+ * 5. Periodically recalculates live typing speed (WPM/Raw WPM) and accuracy.
+ * 6. Coordinates seamlessly with both hardware keyboards (window listener) and
+ *    mobile virtual keyboards (via TypingInput component).
+ */
 export function useTypingEngine({
   targetText,
   isActive,
@@ -119,6 +145,8 @@ export function useTypingEngine({
       if (currentIndex >= targetText.length) return;
 
       const expectedChar = targetText[currentIndex];
+      // Normalize typographic/smart quotes with standard ASCII equivalents
+      // so users on mobile (smart punctuation) or different keyboard layouts aren't penalized
       const isCorrect =
         typedChar === expectedChar ||
         ((typedChar === "'" || typedChar === '’' || typedChar === '`') &&
@@ -126,7 +154,7 @@ export function useTypingEngine({
         ((typedChar === '"' || typedChar === '“' || typedChar === '”') &&
           (expectedChar === '"' || expectedChar === '“' || expectedChar === '”'));
 
-      // Start timer on first keystroke
+      // Start elapsed timer precisely on the user's first keystroke (Monkeytype behavior)
       let effectiveStartTime = startTime;
       if (!effectiveStartTime) {
         effectiveStartTime = performance.now();
@@ -175,13 +203,15 @@ export function useTypingEngine({
     (e: KeyboardEvent) => {
       if (!isActive || !targetText) return;
 
-      // If user is focused on an input element, let the element handle it directly
+      // Bypasses global key capture when typing inside an actual input/textarea.
+      // On mobile (and inside TypingInput's hidden buffer), keystrokes and IME composition
+      // are handled by onChange/onKeyDown within TypingInput itself to avoid duplicate inputs.
       const target = e.target as HTMLElement | null;
       if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) {
         return;
       }
 
-      // Ignore meta keys
+      // Ignore modifier keys, navigation arrows, and command shortcuts
       if (e.ctrlKey || e.altKey || e.metaKey) return;
       if (['Shift', 'CapsLock', 'Tab', 'Escape', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
         return;

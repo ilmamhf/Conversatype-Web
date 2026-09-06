@@ -1,3 +1,16 @@
+/**
+ * Conversatype Procedural Web Audio Synthesizer
+ *
+ * Provides 100% client-side, zero-latency audio synthesis using the browser Web Audio API.
+ * Eliminates network roundtrips and asset loading delays for mechanical switch typing feedback.
+ *
+ * Sound Profiles:
+ * - Cherry MX Blue ('cherry'): Sharp dual-stage mechanical snap (3200Hz click-jacket transient + 520Hz housing clack).
+ * - Tactile Thock ('thock'): Warm, creamy low fundamental resonance (190Hz -> 65Hz) paired with a soft woody bump.
+ * - Bubble Pop ('pop'): Cheerful, round upward frequency inflection (420Hz -> 920Hz -> 700Hz).
+ * - Silent Mode ('silent'): Mutes all keystrokes and gameplay audio effects.
+ */
+
 import { SoundPack } from '../types/settings';
 
 class SoundSynthesizer {
@@ -5,7 +18,10 @@ class SoundSynthesizer {
   private soundPack: SoundPack = 'thock';
   private volume: number = 0.5;
 
-  private initContext() {
+  /**
+   * Lazily initializes and resumes the Web Audio AudioContext upon user gesture.
+   */
+  private initContext(): void {
     if (!this.ctx && typeof window !== 'undefined') {
       const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       if (AudioCtx) {
@@ -17,15 +33,26 @@ class SoundSynthesizer {
     }
   }
 
-  public setSoundPack(pack: SoundPack) {
+  /**
+   * Updates global fallback sound pack preference.
+   */
+  public setSoundPack(pack: SoundPack): void {
     this.soundPack = pack;
   }
 
-  public setVolume(vol: number) {
+  /**
+   * Updates master playback volume (clamped between 0.0 and 1.0).
+   */
+  public setVolume(vol: number): void {
     this.volume = Math.max(0, Math.min(1, vol));
   }
 
-  public playKeyClick(pack?: SoundPack) {
+  /**
+   * Plays a single keystroke sound effect.
+   *
+   * @param pack Optional explicit sound pack override (guarantees direct injection from user settings).
+   */
+  public playKeyClick(pack?: SoundPack): void {
     const activePack = pack || this.soundPack;
     if (activePack === 'silent' || this.volume <= 0) return;
     this.initContext();
@@ -34,8 +61,7 @@ class SoundSynthesizer {
     const t = this.ctx.currentTime;
 
     if (activePack === 'cherry') {
-      // Crisp clicky mechanical switch (Cherry MX Blue snap + housing clack)
-      // 1. High-frequency click-jacket snap
+      // 1. High-frequency metallic click-jacket snap (3200Hz -> 1600Hz in 8ms)
       const clickOsc = this.ctx.createOscillator();
       const clickGain = this.ctx.createGain();
       clickOsc.type = 'square';
@@ -48,7 +74,7 @@ class SoundSynthesizer {
       clickOsc.start(t);
       clickOsc.stop(t + 0.01);
 
-      // 2. Plastic bottom-out body clack
+      // 2. Plastic bottom-out body clack (520Hz -> 240Hz in 25ms)
       const bodyOsc = this.ctx.createOscillator();
       const bodyGain = this.ctx.createGain();
       bodyOsc.type = 'triangle';
@@ -62,8 +88,7 @@ class SoundSynthesizer {
       bodyOsc.stop(t + 0.03);
 
     } else if (activePack === 'thock') {
-      // Deep, creamy tactile thock (low fundamental resonance + soft acoustic bump)
-      // 1. Warm low fundamental resonator
+      // 1. Deep fundamental resonator (190Hz -> 65Hz in 55ms)
       const thockOsc = this.ctx.createOscillator();
       const thockGain = this.ctx.createGain();
       thockOsc.type = 'sine';
@@ -76,7 +101,7 @@ class SoundSynthesizer {
       thockOsc.start(t);
       thockOsc.stop(t + 0.06);
 
-      // 2. Soft woody acoustic transient
+      // 2. Soft woody acoustic transient bump (380Hz -> 140Hz in 20ms)
       const bumpOsc = this.ctx.createOscillator();
       const bumpGain = this.ctx.createGain();
       bumpOsc.type = 'triangle';
@@ -90,7 +115,7 @@ class SoundSynthesizer {
       bumpOsc.stop(t + 0.025);
 
     } else if (activePack === 'pop') {
-      // Cheerful, round bubble pop (rapid resonant inflection)
+      // Cheerful, round bubble pop with rapid upward pitch inflection
       const popOsc = this.ctx.createOscillator();
       const popGain = this.ctx.createGain();
       popOsc.type = 'sine';
@@ -106,13 +131,16 @@ class SoundSynthesizer {
     }
   }
 
-  public playMessageSent() {
+  /**
+   * Plays a pleasant ascending 3-tone chime when a user message finishes and sends.
+   */
+  public playMessageSent(): void {
     if (this.soundPack === 'silent' || this.volume <= 0) return;
     this.initContext();
     if (!this.ctx) return;
 
     const t = this.ctx.currentTime;
-    // Pleasant ascending chime
+    // Ascending arpeggio (C5 -> E5 -> G5)
     [523.25, 659.25, 783.99].forEach((freq, i) => {
       if (!this.ctx) return;
       const osc = this.ctx.createOscillator();
@@ -130,7 +158,10 @@ class SoundSynthesizer {
     });
   }
 
-  public playMessageReceived() {
+  /**
+   * Plays a 2-tone alert chime when the NPC delivers a new chat message.
+   */
+  public playMessageReceived(): void {
     if (this.soundPack === 'silent' || this.volume <= 0) return;
     this.initContext();
     if (!this.ctx) return;
@@ -151,7 +182,10 @@ class SoundSynthesizer {
     osc.stop(t + 0.16);
   }
 
-  public playError() {
+  /**
+   * Plays a low-pitch sawtooth buzz on an incorrect keystroke.
+   */
+  public playError(): void {
     if (this.soundPack === 'silent' || this.volume <= 0) return;
     this.initContext();
     if (!this.ctx) return;
@@ -171,13 +205,16 @@ class SoundSynthesizer {
     osc.stop(t + 0.09);
   }
 
-  public playSuccessFanfare() {
+  /**
+   * Plays a celebratory fanfare arpeggio upon scenario completion.
+   */
+  public playSuccessFanfare(): void {
     if (this.soundPack === 'silent' || this.volume <= 0) return;
     this.initContext();
     if (!this.ctx) return;
 
     const t = this.ctx.currentTime;
-    const chord = [523.25, 659.25, 783.99, 1046.50]; // C Major arpeggio
+    const chord = [523.25, 659.25, 783.99, 1046.50]; // C Major arpeggio (C5 -> E5 -> G5 -> C6)
     chord.forEach((freq, idx) => {
       if (!this.ctx) return;
       const osc = this.ctx.createOscillator();
@@ -196,4 +233,7 @@ class SoundSynthesizer {
   }
 }
 
+/**
+ * Global singleton sound service instance.
+ */
 export const soundService = new SoundSynthesizer();
